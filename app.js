@@ -68,7 +68,7 @@ const destinations = [
     stay: [
       { icon: '🏙', name: 'Khao San Road Hostels, Bangkok', desc: 'Party hostel central from $6/night. Loud at night but unbeatable location and social scene.', tag: 'Budget', tagColor: '#14532d', tagText: '#4ade80' },
       { icon: '🌸', name: 'Nimman Area, Chiang Mai', desc: 'Hip boutique guesthouses from $20/night near cafes, night bazaar and Doi Suthep mountain.', tag: 'Mid Range', tagColor: '#1e3a5f', tagText: '#60a5fa' },
-      { icon: '🏝', name: 'Koh Lanta / Koh Tao Bungalows', budget: true, desc: 'Beach bungalows from $15-25/night — less touristy than Phuket with clearer water.', tag: 'Beach', tagColor: '#2d1f4e', tagText: '#a78bfa' },
+      { icon: '🏝', name: 'Koh Lanta / Koh Tao Bungalows', desc: 'Beach bungalows from $15-25/night — less touristy than Phuket with clearer water.', tag: 'Beach', tagColor: '#2d1f4e', tagText: '#a78bfa' },
     ],
     shopping: [
       { icon: '🌃', name: 'Chatuchak Weekend Market, Bangkok', desc: 'World\'s largest weekend market — 15,000 stalls, clothing, art, plants, food. Go early before heat.', tag: 'Massive', tagColor: '#14532d', tagText: '#4ade80' },
@@ -132,10 +132,12 @@ async function searchDestinations() {
 }
 
 const JUNK_KEYWORDS = ['chatgpt', 'ai generates', 'photographer', 'portrait photography', 'book celebrates', 'announces partnership', 'stock market', 'earnings report', 'celebrity'];
+
 function isUsefulArticle(title) {
   const lower = title.toLowerCase();
   return !JUNK_KEYWORDS.some(k => lower.includes(k)) && ['warn', 'ban', 'flood', 'storm', 'earthquake', 'visa', 'entry', 'protest', 'unrest', 'war', 'conflict', 'typhoon', 'eruption', 'advisory', 'safety', 'danger', 'travel', 'tourist', 'permit', 'rule', 'restriction', 'weather', 'season', 'food', 'cost', 'cheap', 'affordable', 'scam'].some(k => lower.includes(k));
 }
+
 function tagArticle(title) {
   const lower = title.toLowerCase();
   if (['flood', 'storm', 'typhoon', 'earthquake', 'eruption', 'weather', 'season'].some(k => lower.includes(k))) return { label: '🌦 Weather', color: '#1e3a5f', text: '#60a5fa' };
@@ -143,6 +145,7 @@ function tagArticle(title) {
   if (['protest', 'unrest', 'war', 'conflict', 'danger', 'safety', 'warn', 'advisory'].some(k => lower.includes(k))) return { label: '⚠️ Safety', color: '#4a1010', text: '#f87171' };
   return { label: '💡 Travel Tip', color: '#2d1f4e', text: '#a78bfa' };
 }
+
 async function fetchNews(destName, query) {
   try {
     const res = await fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&pageSize=10&language=en&apiKey=${NEWS_KEY}`);
@@ -169,7 +172,7 @@ function openDetail(destName, days, symbol) {
   document.getElementById('detail-name').textContent = dest.name;
   document.getElementById('detail-cities').textContent = dest.cities;
   document.getElementById('detail-days-badge').textContent = `${days} days on your budget`;
-  document.getElementById('detail-budget-badge').textContent = `${currentSymbol}${(dest.dailyCostUSD * (liveRates[Object.keys(liveRates).find(k => { const sym = { INR: '₹', USD: '$', GBP: '£', EUR: '€', AED: 'د.إ' }; return sym[k] === symbol; })] || 1)).toFixed(0)} / day`;
+  document.getElementById('detail-budget-badge').textContent = `${symbol}${(dest.dailyCostUSD * (liveRates[Object.keys(liveRates).find(k => ({ INR: '₹', USD: '$', GBP: '£', EUR: '€', AED: 'د.إ' }[k] === symbol))] || 1)).toFixed(0)} / day`;
   document.getElementById('detail-screen').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
   switchTab('itinerary');
@@ -189,19 +192,20 @@ function switchTab(tab) {
   if (tab === 'food') renderRecos('food-list', currentDest.food);
   if (tab === 'stay') renderRecos('stay-list', currentDest.stay);
   if (tab === 'shopping') renderRecos('shopping-list', currentDest.shopping);
+  if (tab === 'visa') renderVisa(currentDest);
+  if (tab === 'flights') {}
 }
 
 function renderItinerary() {
   const list = document.getElementById('itinerary-list');
   const itin = currentDest.itinerary;
-  const totalDays = currentDays;
   let html = '';
-  for (let i = 0; i < Math.min(totalDays, itin.length); i++) {
+  for (let i = 0; i < Math.min(currentDays, itin.length); i++) {
     const day = itin[i];
     html += `<div class="day-card"><div class="day-label">Day ${i + 1}</div><div class="day-title">${day.theme}</div><div class="day-activities">${day.activities.map(a => `<div class="activity"><span class="activity-time">${a.time}</span><span>${a.text}</span></div>`).join('')}</div></div>`;
   }
-  if (totalDays > itin.length) {
-    html += `<div class="day-card" style="border-style:dashed; border-color:#4f6ef7"><div class="day-label" style="color:#4f6ef7">Days ${itin.length + 1}–${totalDays}</div><div class="day-title">Explore at your own pace</div><div class="day-activities"><div class="activity"><span class="activity-time">Tip</span><span>With extra days, explore nearby regions, take day trips, or slow down and enjoy local life — the best travel moments are often unplanned.</span></div></div></div>`;
+  if (currentDays > itin.length) {
+    html += `<div class="day-card" style="border-style:dashed; border-color:#4f6ef7"><div class="day-label" style="color:#4f6ef7">Days ${itin.length + 1}–${currentDays}</div><div class="day-title">Explore at your own pace</div><div class="day-activities"><div class="activity"><span class="activity-time">Tip</span><span>With extra days, explore nearby regions, take day trips, or slow down and enjoy local life — the best travel moments are often unplanned.</span></div></div></div>`;
   }
   list.innerHTML = html;
 }
@@ -236,33 +240,30 @@ function renderCards(results, currency) {
   `).join('');
 }
 
-loadRates();
-// Visa data per destination (for Indian passport holders)
 const visaData = {
-  'Vietnam': { status: 'visa-free', statusLabel: 'Visa Free', duration: '45 days', type: 'E-visa also available', cost: 'Free', processing: 'Instant on arrival', note: 'Indian passport holders get 45-day visa-free access. E-visa available for $25 if you prefer pre-approval. Extension possible at immigration offices.' },
-  'Thailand': { status: 'visa-on-arrival', statusLabel: 'Visa on Arrival', duration: '30 days', type: 'Visa on Arrival / E-visa', cost: '฿2,000 (~₹4,600)', processing: 'On arrival (30-60 min queue)', note: 'Get the e-visa before travel to skip the queue — ₹2,800 approx and takes 3 business days. Multiple entries not allowed on VOA.' },
-  'Indonesia': { status: 'visa-free', statusLabel: 'Visa Free', duration: '30 days', type: 'Visa Free', cost: 'Free', processing: 'Instant on arrival', note: 'India passport gets 30-day visa-free access to Bali and all Indonesia. No extension — you must exit and re-enter.' },
-  'Malaysia': { status: 'visa-free', statusLabel: 'Visa Free', duration: '30 days', type: 'Visa Free', cost: 'Free', processing: 'Instant on arrival', note: 'Indian passport holders get 30-day visa-free entry. Very easy destination — no prior approval needed.' },
-  'Nepal': { status: 'visa-free', statusLabel: 'Visa Free', duration: 'Unlimited', type: 'Visa Free', cost: 'Free', processing: 'Instant on arrival', note: 'Indian citizens do not need a visa or passport for Nepal — Aadhaar card or voter ID is sufficient. No limit on stay duration.' },
-  'Sri Lanka': { status: 'visa-required', statusLabel: 'ETA Required', duration: '30 days', type: 'Electronic Travel Authorisation', cost: '$20 USD', processing: '24-48 hours online', note: 'Apply at eta.gov.lk before travel. Takes 24-48 hrs and costs $20. Do not use third party sites — only the official government portal.' },
-  'Portugal': { status: 'visa-required', statusLabel: 'Schengen Visa Required', duration: '90 days in 180', type: 'Schengen Short Stay Visa', cost: '€90 (~₹8,100)', processing: '15-30 business days', note: 'Apply at VFS Global or the Portuguese Embassy. Book appointment early — slots fill fast. Requires bank statements, hotel bookings, travel insurance and itinerary.' },
-  'Georgia': { status: 'visa-free', statusLabel: 'Visa Free', duration: '365 days', type: 'Visa Free', cost: 'Free', processing: 'Instant on arrival', note: 'One of the most generous visa policies in the world for Indian passport holders — 1 full year visa-free. No prior registration needed.' },
-  'Mexico': { status: 'visa-free', statusLabel: 'Visa Free', duration: '180 days', type: 'Visa Free (with conditions)', cost: 'Free', processing: 'Instant on arrival', note: 'Indian passport holders with a valid US, UK, Canadian or Schengen visa get visa-free entry. Without one, a Mexican visa is required. Carry your US/Schengen visa just in case.' },
-  'Japan': { status: 'visa-required', statusLabel: 'Visa Required', duration: '15-90 days', type: 'Tourist Visa', cost: '¥3,000 (~₹1,600)', processing: '5-7 business days', note: 'Apply at VFS Japan. Requires 3 months bank statements, leave letter, hotel bookings. Japan has recently relaxed some requirements — process is smoother than before.' },
+  'Vietnam':   { status: 'visa-free',      statusLabel: 'Visa Free',              duration: '45 days',        type: 'E-visa also available',          cost: 'Free',              processing: 'Instant on arrival',        note: 'Indian passport holders get 45-day visa-free access. E-visa available for $25 if you prefer pre-approval. Extension possible at immigration offices.' },
+  'Thailand':  { status: 'visa-on-arrival', statusLabel: 'Visa on Arrival',        duration: '30 days',        type: 'Visa on Arrival / E-visa',        cost: '฿2,000 (~₹4,600)', processing: 'On arrival (30-60 min queue)', note: 'Get the e-visa before travel to skip the queue — ₹2,800 approx and takes 3 business days. Multiple entries not allowed on VOA.' },
+  'Indonesia': { status: 'visa-free',      statusLabel: 'Visa Free',              duration: '30 days',        type: 'Visa Free',                       cost: 'Free',              processing: 'Instant on arrival',        note: 'India passport gets 30-day visa-free access to Bali and all Indonesia. No extension — you must exit and re-enter.' },
+  'Malaysia':  { status: 'visa-free',      statusLabel: 'Visa Free',              duration: '30 days',        type: 'Visa Free',                       cost: 'Free',              processing: 'Instant on arrival',        note: 'Indian passport holders get 30-day visa-free entry. Very easy destination — no prior approval needed.' },
+  'Nepal':     { status: 'visa-free',      statusLabel: 'Visa Free',              duration: 'Unlimited',      type: 'Visa Free',                       cost: 'Free',              processing: 'Instant on arrival',        note: 'Indian citizens do not need a visa or passport for Nepal — Aadhaar card or voter ID is sufficient. No limit on stay duration.' },
+  'Sri Lanka': { status: 'visa-required',  statusLabel: 'ETA Required',           duration: '30 days',        type: 'Electronic Travel Authorisation', cost: '$20 USD',           processing: '24-48 hours online',        note: 'Apply at eta.gov.lk before travel. Takes 24-48 hrs and costs $20. Do not use third party sites — only the official government portal.' },
+  'Portugal':  { status: 'visa-required',  statusLabel: 'Schengen Visa Required', duration: '90 days in 180', type: 'Schengen Short Stay Visa',         cost: '€90 (~₹8,100)',    processing: '15-30 business days',       note: 'Apply at VFS Global or the Portuguese Embassy. Book appointment early — slots fill fast. Requires bank statements, hotel bookings, travel insurance and itinerary.' },
+  'Georgia':   { status: 'visa-free',      statusLabel: 'Visa Free',              duration: '365 days',       type: 'Visa Free',                       cost: 'Free',              processing: 'Instant on arrival',        note: 'One of the most generous visa policies in the world for Indian passport holders — 1 full year visa-free. No prior registration needed.' },
+  'Mexico':    { status: 'visa-free',      statusLabel: 'Visa Free',              duration: '180 days',       type: 'Visa Free (with conditions)',      cost: 'Free',              processing: 'Instant on arrival',        note: 'Indian passport holders with a valid US, UK, Canadian or Schengen visa get visa-free entry. Without one, a Mexican visa is required. Carry your US/Schengen visa just in case.' },
+  'Japan':     { status: 'visa-required',  statusLabel: 'Visa Required',          duration: '15-90 days',     type: 'Tourist Visa',                    cost: '¥3,000 (~₹1,600)', processing: '5-7 business days',         note: 'Apply at VFS Japan. Requires 3 months bank statements, leave letter, hotel bookings. Japan has recently relaxed some requirements — process is smoother than before.' },
 };
 
-// Flight cost data (USD estimates from Indian cities)
 const flightCosts = {
-  'Vietnam':    { DEL: [180,320], BOM: [200,340], BLR: [190,330], HYD: [185,320], MAA: [175,300], LHR: [400,700], JFK: [600,900], DXB: [250,420] },
-  'Thailand':   { DEL: [120,250], BOM: [140,270], BLR: [130,260], HYD: [125,250], MAA: [115,230], LHR: [350,600], JFK: [550,850], DXB: [180,350] },
-  'Indonesia':  { DEL: [200,380], BOM: [220,390], BLR: [210,375], HYD: [205,370], MAA: [195,355], LHR: [450,750], JFK: [650,950], DXB: [280,460] },
-  'Malaysia':   { DEL: [100,200], BOM: [110,220], BLR: [100,210], HYD: [100,200], MAA: [90,185],  LHR: [300,500], JFK: [500,800], DXB: [150,300] },
-  'Nepal':      { DEL: [60,130],  BOM: [80,160],  BLR: [90,180],  HYD: [85,170],  MAA: [85,175],  LHR: [350,600], JFK: [550,850], DXB: [200,380] },
-  'Sri Lanka':  { DEL: [80,180],  BOM: [70,160],  BLR: [75,165],  HYD: [80,170],  MAA: [60,140],  LHR: [300,500], JFK: [500,800], DXB: [130,260] },
-  'Portugal':   { DEL: [450,800], BOM: [480,820], BLR: [470,810], HYD: [460,800], MAA: [455,795], LHR: [80,200],  JFK: [350,600], DXB: [380,650] },
-  'Georgia':    { DEL: [200,380], BOM: [220,400], BLR: [215,390], HYD: [210,385], MAA: [210,385], LHR: [120,280], JFK: [450,750], DXB: [150,320] },
-  'Mexico':     { DEL: [550,950], BOM: [570,970], BLR: [560,960], HYD: [555,950], MAA: [550,945], LHR: [350,600], JFK: [150,350], DXB: [500,850] },
-  'Japan':      { DEL: [280,500], BOM: [300,520], BLR: [290,510], HYD: [285,505], MAA: [280,500], LHR: [450,750], JFK: [550,900], DXB: [350,580] },
+  'Vietnam':   { DEL: [180,320], BOM: [200,340], BLR: [190,330], HYD: [185,320], MAA: [175,300], LHR: [400,700], JFK: [600,900], DXB: [250,420] },
+  'Thailand':  { DEL: [120,250], BOM: [140,270], BLR: [130,260], HYD: [125,250], MAA: [115,230], LHR: [350,600], JFK: [550,850], DXB: [180,350] },
+  'Indonesia': { DEL: [200,380], BOM: [220,390], BLR: [210,375], HYD: [205,370], MAA: [195,355], LHR: [450,750], JFK: [650,950], DXB: [280,460] },
+  'Malaysia':  { DEL: [100,200], BOM: [110,220], BLR: [100,210], HYD: [100,200], MAA: [90,185],  LHR: [300,500], JFK: [500,800], DXB: [150,300] },
+  'Nepal':     { DEL: [60,130],  BOM: [80,160],  BLR: [90,180],  HYD: [85,170],  MAA: [85,175],  LHR: [350,600], JFK: [550,850], DXB: [200,380] },
+  'Sri Lanka': { DEL: [80,180],  BOM: [70,160],  BLR: [75,165],  HYD: [80,170],  MAA: [60,140],  LHR: [300,500], JFK: [500,800], DXB: [130,260] },
+  'Portugal':  { DEL: [450,800], BOM: [480,820], BLR: [470,810], HYD: [460,800], MAA: [455,795], LHR: [80,200],  JFK: [350,600], DXB: [380,650] },
+  'Georgia':   { DEL: [200,380], BOM: [220,400], BLR: [215,390], HYD: [210,385], MAA: [210,385], LHR: [120,280], JFK: [450,750], DXB: [150,320] },
+  'Mexico':    { DEL: [550,950], BOM: [570,970], BLR: [560,960], HYD: [555,950], MAA: [550,945], LHR: [350,600], JFK: [150,350], DXB: [500,850] },
+  'Japan':     { DEL: [280,500], BOM: [300,520], BLR: [290,510], HYD: [285,505], MAA: [280,500], LHR: [450,750], JFK: [550,900], DXB: [350,580] },
 };
 
 const classMultiplier = { economy: 1, premium: 1.8, business: 3.5 };
@@ -271,27 +272,17 @@ function estimateFlight() {
   const origin = document.getElementById('flight-origin').value;
   const flightClass = document.getElementById('flight-class').value;
   const pax = parseInt(document.getElementById('flight-pax').value) || 1;
-  const dest = currentDest.name;
   const currency = Object.keys({ INR: '₹', USD: '$', GBP: '£', EUR: '€', AED: 'د.إ' }).find(k => ({ INR: '₹', USD: '$', GBP: '£', EUR: '€', AED: 'د.إ' }[k] === currentSymbol)) || 'INR';
-
-  const data = flightCosts[dest]?.[origin];
+  const data = flightCosts[currentDest.name]?.[origin];
   if (!data) { document.getElementById('flight-result').innerHTML = '<p class="news-loading">No estimate available for this route.</p>'; document.getElementById('flight-result').classList.add('show'); return; }
-
   const multiplier = classMultiplier[flightClass];
   const low = Math.round(data[0] * multiplier * pax * liveRates[currency]);
   const high = Math.round(data[1] * multiplier * pax * liveRates[currency]);
   const midUSD = ((data[0] + data[1]) / 2) * multiplier;
   const tripCostUSD = currentDays * currentDest.dailyCostUSD;
-  const totalUSD = (midUSD * pax) + tripCostUSD;
-  const total = Math.round(totalUSD * liveRates[currency]);
-
+  const total = Math.round(((midUSD * pax) + tripCostUSD) * liveRates[currency]);
   const classLabels = { economy: 'Economy class', premium: 'Premium Economy', business: 'Business class' };
-  const tips = {
-    economy: 'Book 6-8 weeks ahead for best economy prices. Tuesday/Wednesday departures are typically cheapest.',
-    premium: 'Premium Economy is 40-50% cheaper than Business but far more comfortable on long hauls.',
-    business: 'Business class prices drop significantly 2-3 weeks before departure if seats are unsold.',
-  };
-
+  const tips = { economy: 'Book 6-8 weeks ahead for best economy prices. Tuesday/Wednesday departures are typically cheapest.', premium: 'Premium Economy is 40-50% cheaper than Business but far more comfortable on long hauls.', business: 'Business class prices drop significantly 2-3 weeks before departure if seats are unsold.' };
   document.getElementById('flight-result').innerHTML = `
     <div class="flight-price">${currentSymbol}${low.toLocaleString()} – ${currentSymbol}${high.toLocaleString()}</div>
     <div class="flight-range">${classLabels[flightClass]} · ${pax} passenger${pax > 1 ? 's' : ''} · return trip estimate</div>
@@ -336,3 +327,5 @@ function filterDestinations() {
     card.style.display = (name.includes(query) || cities.includes(query)) ? '' : 'none';
   });
 }
+
+loadRates();
