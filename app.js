@@ -237,3 +237,102 @@ function renderCards(results, currency) {
 }
 
 loadRates();
+// Visa data per destination (for Indian passport holders)
+const visaData = {
+  'Vietnam': { status: 'visa-free', statusLabel: 'Visa Free', duration: '45 days', type: 'E-visa also available', cost: 'Free', processing: 'Instant on arrival', note: 'Indian passport holders get 45-day visa-free access. E-visa available for $25 if you prefer pre-approval. Extension possible at immigration offices.' },
+  'Thailand': { status: 'visa-on-arrival', statusLabel: 'Visa on Arrival', duration: '30 days', type: 'Visa on Arrival / E-visa', cost: '฿2,000 (~₹4,600)', processing: 'On arrival (30-60 min queue)', note: 'Get the e-visa before travel to skip the queue — ₹2,800 approx and takes 3 business days. Multiple entries not allowed on VOA.' },
+  'Indonesia': { status: 'visa-free', statusLabel: 'Visa Free', duration: '30 days', type: 'Visa Free', cost: 'Free', processing: 'Instant on arrival', note: 'India passport gets 30-day visa-free access to Bali and all Indonesia. No extension — you must exit and re-enter.' },
+  'Malaysia': { status: 'visa-free', statusLabel: 'Visa Free', duration: '30 days', type: 'Visa Free', cost: 'Free', processing: 'Instant on arrival', note: 'Indian passport holders get 30-day visa-free entry. Very easy destination — no prior approval needed.' },
+  'Nepal': { status: 'visa-free', statusLabel: 'Visa Free', duration: 'Unlimited', type: 'Visa Free', cost: 'Free', processing: 'Instant on arrival', note: 'Indian citizens do not need a visa or passport for Nepal — Aadhaar card or voter ID is sufficient. No limit on stay duration.' },
+  'Sri Lanka': { status: 'visa-required', statusLabel: 'ETA Required', duration: '30 days', type: 'Electronic Travel Authorisation', cost: '$20 USD', processing: '24-48 hours online', note: 'Apply at eta.gov.lk before travel. Takes 24-48 hrs and costs $20. Do not use third party sites — only the official government portal.' },
+  'Portugal': { status: 'visa-required', statusLabel: 'Schengen Visa Required', duration: '90 days in 180', type: 'Schengen Short Stay Visa', cost: '€90 (~₹8,100)', processing: '15-30 business days', note: 'Apply at VFS Global or the Portuguese Embassy. Book appointment early — slots fill fast. Requires bank statements, hotel bookings, travel insurance and itinerary.' },
+  'Georgia': { status: 'visa-free', statusLabel: 'Visa Free', duration: '365 days', type: 'Visa Free', cost: 'Free', processing: 'Instant on arrival', note: 'One of the most generous visa policies in the world for Indian passport holders — 1 full year visa-free. No prior registration needed.' },
+  'Mexico': { status: 'visa-free', statusLabel: 'Visa Free', duration: '180 days', type: 'Visa Free (with conditions)', cost: 'Free', processing: 'Instant on arrival', note: 'Indian passport holders with a valid US, UK, Canadian or Schengen visa get visa-free entry. Without one, a Mexican visa is required. Carry your US/Schengen visa just in case.' },
+  'Japan': { status: 'visa-required', statusLabel: 'Visa Required', duration: '15-90 days', type: 'Tourist Visa', cost: '¥3,000 (~₹1,600)', processing: '5-7 business days', note: 'Apply at VFS Japan. Requires 3 months bank statements, leave letter, hotel bookings. Japan has recently relaxed some requirements — process is smoother than before.' },
+};
+
+// Flight cost data (USD estimates from Indian cities)
+const flightCosts = {
+  'Vietnam':    { DEL: [180,320], BOM: [200,340], BLR: [190,330], HYD: [185,320], MAA: [175,300], LHR: [400,700], JFK: [600,900], DXB: [250,420] },
+  'Thailand':   { DEL: [120,250], BOM: [140,270], BLR: [130,260], HYD: [125,250], MAA: [115,230], LHR: [350,600], JFK: [550,850], DXB: [180,350] },
+  'Indonesia':  { DEL: [200,380], BOM: [220,390], BLR: [210,375], HYD: [205,370], MAA: [195,355], LHR: [450,750], JFK: [650,950], DXB: [280,460] },
+  'Malaysia':   { DEL: [100,200], BOM: [110,220], BLR: [100,210], HYD: [100,200], MAA: [90,185],  LHR: [300,500], JFK: [500,800], DXB: [150,300] },
+  'Nepal':      { DEL: [60,130],  BOM: [80,160],  BLR: [90,180],  HYD: [85,170],  MAA: [85,175],  LHR: [350,600], JFK: [550,850], DXB: [200,380] },
+  'Sri Lanka':  { DEL: [80,180],  BOM: [70,160],  BLR: [75,165],  HYD: [80,170],  MAA: [60,140],  LHR: [300,500], JFK: [500,800], DXB: [130,260] },
+  'Portugal':   { DEL: [450,800], BOM: [480,820], BLR: [470,810], HYD: [460,800], MAA: [455,795], LHR: [80,200],  JFK: [350,600], DXB: [380,650] },
+  'Georgia':    { DEL: [200,380], BOM: [220,400], BLR: [215,390], HYD: [210,385], MAA: [210,385], LHR: [120,280], JFK: [450,750], DXB: [150,320] },
+  'Mexico':     { DEL: [550,950], BOM: [570,970], BLR: [560,960], HYD: [555,950], MAA: [550,945], LHR: [350,600], JFK: [150,350], DXB: [500,850] },
+  'Japan':      { DEL: [280,500], BOM: [300,520], BLR: [290,510], HYD: [285,505], MAA: [280,500], LHR: [450,750], JFK: [550,900], DXB: [350,580] },
+};
+
+const classMultiplier = { economy: 1, premium: 1.8, business: 3.5 };
+
+function estimateFlight() {
+  const origin = document.getElementById('flight-origin').value;
+  const flightClass = document.getElementById('flight-class').value;
+  const pax = parseInt(document.getElementById('flight-pax').value) || 1;
+  const dest = currentDest.name;
+  const currency = Object.keys({ INR: '₹', USD: '$', GBP: '£', EUR: '€', AED: 'د.إ' }).find(k => ({ INR: '₹', USD: '$', GBP: '£', EUR: '€', AED: 'د.إ' }[k] === currentSymbol)) || 'INR';
+
+  const data = flightCosts[dest]?.[origin];
+  if (!data) { document.getElementById('flight-result').innerHTML = '<p class="news-loading">No estimate available for this route.</p>'; document.getElementById('flight-result').classList.add('show'); return; }
+
+  const multiplier = classMultiplier[flightClass];
+  const low = Math.round(data[0] * multiplier * pax * liveRates[currency]);
+  const high = Math.round(data[1] * multiplier * pax * liveRates[currency]);
+  const midUSD = ((data[0] + data[1]) / 2) * multiplier;
+  const tripCostUSD = currentDays * currentDest.dailyCostUSD;
+  const totalUSD = (midUSD * pax) + tripCostUSD;
+  const total = Math.round(totalUSD * liveRates[currency]);
+
+  const classLabels = { economy: 'Economy class', premium: 'Premium Economy', business: 'Business class' };
+  const tips = {
+    economy: 'Book 6-8 weeks ahead for best economy prices. Tuesday/Wednesday departures are typically cheapest.',
+    premium: 'Premium Economy is 40-50% cheaper than Business but far more comfortable on long hauls.',
+    business: 'Business class prices drop significantly 2-3 weeks before departure if seats are unsold.',
+  };
+
+  document.getElementById('flight-result').innerHTML = `
+    <div class="flight-price">${currentSymbol}${low.toLocaleString()} – ${currentSymbol}${high.toLocaleString()}</div>
+    <div class="flight-range">${classLabels[flightClass]} · ${pax} passenger${pax > 1 ? 's' : ''} · return trip estimate</div>
+    <div class="flight-breakdown">
+      <div class="flight-row"><span>Flight (per person)</span><span>${currentSymbol}${Math.round(data[0] * multiplier * liveRates[currency]).toLocaleString()} – ${currentSymbol}${Math.round(data[1] * multiplier * liveRates[currency]).toLocaleString()}</span></div>
+      <div class="flight-row"><span>Accommodation (${currentDays} days)</span><span>${currentSymbol}${Math.round(tripCostUSD * 0.35 * liveRates[currency]).toLocaleString()} est.</span></div>
+      <div class="flight-row"><span>Food & transport (${currentDays} days)</span><span>${currentSymbol}${Math.round(tripCostUSD * 0.65 * liveRates[currency]).toLocaleString()} est.</span></div>
+      <div class="flight-row total-row"><span>Total trip estimate</span><span>${currentSymbol}${total.toLocaleString()}</span></div>
+    </div>
+    <div class="flight-tip">💡 ${tips[flightClass]}</div>
+  `;
+  document.getElementById('flight-result').classList.add('show');
+}
+
+function renderVisa(dest) {
+  const container = document.getElementById('visa-info');
+  const visa = visaData[dest.name];
+  if (!visa) { container.innerHTML = '<p class="loading-msg">Visa info coming soon for this destination.</p>'; return; }
+  container.innerHTML = `
+    <div class="visa-card">
+      <div class="visa-header">
+        <span class="visa-status ${visa.status}">${visa.statusLabel}</span>
+        <span class="visa-title">For Indian passport holders</span>
+      </div>
+      <div class="visa-rows">
+        <div class="visa-row"><span class="visa-key">Visa type</span><span class="visa-val">${visa.type}</span></div>
+        <div class="visa-row"><span class="visa-key">Max stay</span><span class="visa-val">${visa.duration}</span></div>
+        <div class="visa-row"><span class="visa-key">Cost</span><span class="visa-val">${visa.cost}</span></div>
+        <div class="visa-row"><span class="visa-key">Processing</span><span class="visa-val">${visa.processing}</span></div>
+      </div>
+      <div class="visa-note">📋 ${visa.note}</div>
+    </div>
+  `;
+}
+
+function filterDestinations() {
+  const query = document.getElementById('dest-search').value.toLowerCase();
+  const cards = document.querySelectorAll('.dest-card');
+  cards.forEach(card => {
+    const name = card.querySelector('.dest-name')?.textContent.toLowerCase() || '';
+    const cities = card.querySelector('.dest-city')?.textContent.toLowerCase() || '';
+    card.style.display = (name.includes(query) || cities.includes(query)) ? '' : 'none';
+  });
+}
