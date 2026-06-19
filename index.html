@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RoamRate</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+
+    <!-- HEADER -->
+    <header>
+      <div class="logo">
+  <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="18" cy="18" r="18" fill="#4f6ef7"/>
+    <ellipse cx="18" cy="18" rx="7" ry="11" stroke="white" stroke-width="1.5" fill="none"/>
+    <line x1="7" y1="18" x2="29" y2="18" stroke="white" stroke-width="1.5"/>
+    <ellipse cx="18" cy="18" rx="18" ry="11" stroke="white" stroke-width="1.5" fill="none"/>
+    <line x1="18" y1="7" x2="18" y2="29" stroke="white" stroke-width="1.5"/>
+  </svg>
+  RoamRate
+</div>
+      <p class="tagline">Find where your money goes furthest — right now</p>
+    </header>
+
+    <!-- SEARCH -->
+    <section class="search-section">
+      <div class="search-box">
+        <select id="home-currency">
+          <option value="INR">🇮🇳 INR — Indian Rupee</option>
+          <option value="USD">🇺🇸 USD — US Dollar</option>
+          <option value="GBP">🇬🇧 GBP — British Pound</option>
+          <option value="EUR">🇪🇺 EUR — Euro</option>
+          <option value="AED">🇦🇪 AED — UAE Dirham</option>
+        </select>
+        <input type="number" id="budget" placeholder="Your budget (e.g. 50000)" />
+        <button id="search-btn" onclick="searchDestinations()">Find Destinations →</button>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section class="results-section">
+      <h2 class="section-title">Top Destinations For You</h2>
+      <div class="cards-grid" id="cards-grid">
+
+        <!-- Card 1 -->
+        <div class="dest-card">
+          <div class="card-top">
+            <span class="flag">🇹🇭</span>
+            <div>
+              <h3 class="dest-name">Thailand</h3>
+              <p class="dest-city">Bangkok · Chiang Mai · Phuket</p>
+            </div>
+            <span class="value-badge great">Great Value</span>
+          </div>
+          <div class="card-stats">
+            <div class="stat">
+              <span class="stat-label">Daily Cost</span>
+              <span class="stat-value">~₹2,800</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Currency</span>
+              <span class="stat-value">THB</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Travel Climate</span>
+              <span class="stat-value climate-good">✅ Stable</span>
+            </div>
+          </div>
+          <p class="card-insight">💡 INR has strengthened vs THB this month — your money goes further than last year.</p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="dest-card">
+          <div class="card-top">
+            <span class="flag">🇻🇳</span>
+            <div>
+              <h3 class="dest-name">Vietnam</h3>
+              <p class="dest-city">Hanoi · Ho Chi Minh · Da Nang</p>
+            </div>
+            <span class="value-badge best">Best Value</span>
+          </div>
+          <div class="card-stats">
+            <div class="stat">
+              <span class="stat-label">Daily Cost</span>
+              <span class="stat-value">~₹1,900</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Currency</span>
+              <span class="stat-value">VND</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Travel Climate</span>
+              <span class="stat-value climate-good">✅ Stable</span>
+            </div>
+          </div>
+          <p class="card-insight">💡 One of the cheapest destinations in Asia — street food, hostels, and transport are extremely affordable.</p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="dest-card">
+          <div class="card-top">
+            <span class="flag">🇵🇹</span>
+            <div>
+              <h3 class="dest-name">Portugal</h3>
+              <p class="dest-city">Lisbon · Porto · Algarve</p>
+            </div>
+            <span class="value-badge good">Good Value</span>
+          </div>
+          <div class="card-stats">
+            <div class="stat">
+              <span class="stat-label">Daily Cost</span>
+              <span class="stat-value">~₹5,200</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Currency</span>
+              <span class="stat-value">EUR</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Travel Climate</span>
+              <span class="stat-value climate-good">✅ Stable</span>
+            </div>
+          </div>
+          <p class="card-insight">💡 Cheapest country in Western Europe — great food, weather, and safety for the price.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CURRENCY TICKER -->
+    <section class="ticker-section">
+      <h2 class="section-title">Live Currency Pulse</h2>
+      <div class="ticker-row">
+  <div class="ticker-item"><span class="t-pair">INR/THB</span><span class="t-rate" data-pair="INR/THB">--</span><span class="t-change up">▲ live</span></div>
+  <div class="ticker-item"><span class="t-pair">INR/VND</span><span class="t-rate" data-pair="INR/VND">--</span><span class="t-change up">▲ live</span></div>
+  <div class="ticker-item"><span class="t-pair">INR/EUR</span><span class="t-rate" data-pair="INR/EUR">--</span><span class="t-change down">▼ live</span></div>
+  <div class="ticker-item"><span class="t-pair">INR/USD</span><span class="t-rate" data-pair="INR/USD">--</span><span class="t-change down">▼ live</span></div>
+  <div class="ticker-item"><span class="t-pair">INR/MYR</span><span class="t-rate" data-pair="INR/MYR">--</span><span class="t-change up">▲ live</span></div>
+</div>
+      </div>
+    </section>
+
+    <!-- DETAIL SCREEN -->
+<div id="detail-screen" class="detail-screen hidden">
+  <div class="detail-header">
+    <button class="back-btn" onclick="closeDetail()">← Back</button>
+    <div class="detail-hero">
+      <span id="detail-flag" class="detail-flag"></span>
+      <div>
+        <h1 id="detail-name" class="detail-name"></h1>
+        <p id="detail-cities" class="detail-cities"></p>
+      </div>
+      <div class="detail-meta">
+        <span id="detail-days-badge" class="detail-days-badge"></span>
+        <span id="detail-budget-badge" class="detail-budget-badge"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-body">
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('itinerary')">🗓 Itinerary</button>
+      <button class="tab" onclick="switchTab('food')">🍜 Food</button>
+      <button class="tab" onclick="switchTab('stay')">🏨 Stay</button>
+      <button class="tab" onclick="switchTab('shopping')">🛍 Shopping</button>
+    </div>
+
+    <!-- Itinerary Tab -->
+    <div id="tab-itinerary" class="tab-content active">
+      <div id="itinerary-list" class="itinerary-list">
+        <p class="loading-msg">✨ Building your itinerary...</p>
+      </div>
+    </div>
+
+    <!-- Food Tab -->
+    <div id="tab-food" class="tab-content">
+      <div id="food-list" class="reco-list">
+        <p class="loading-msg">🍜 Loading food recommendations...</p>
+      </div>
+    </div>
+
+    <!-- Stay Tab -->
+    <div id="tab-stay" class="tab-content">
+      <div id="stay-list" class="reco-list">
+        <p class="loading-msg">🏨 Loading stay recommendations...</p>
+      </div>
+    </div>
+
+    <!-- Shopping Tab -->
+    <div id="tab-shopping" class="tab-content">
+      <div id="shopping-list" class="reco-list">
+        <p class="loading-msg">🛍 Loading shopping spots...</p>
+      </div>
+    </div>
+  </div>
+</div>
+    <script src="app.js"></script>
+  </body>
+</html>
