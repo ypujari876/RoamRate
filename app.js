@@ -260,6 +260,8 @@ function switchTab(tab) {
   if (tab === 'shopping') renderRecos('shopping-list', currentDest.shopping);
   if (tab === 'visa') renderVisa(currentDest);
   if (tab === 'flights') {}
+  if (tab === 'budget') { document.getElementById('budget-result').classList.add('hidden'); }
+  if (tab === 'compare') { populateCompareDropdown(); }
 }
 
 function renderItinerary() {
