@@ -444,3 +444,6 @@ header {
   .days-number { font-size: 28px; }
   .dest-name { font-size: 14px; }
 }
+.search-box select:first-child {
+  border-left: 3px solid #4f6ef7;
+}
