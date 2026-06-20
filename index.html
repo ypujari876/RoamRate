@@ -27,18 +27,97 @@
 
     <!-- SEARCH -->
     <section class="search-section">
-      <div class="search-box">
-        <select id="home-currency">
-          <option value="INR">🇮🇳 INR — Indian Rupee</option>
-          <option value="USD">🇺🇸 USD — US Dollar</option>
-          <option value="GBP">🇬🇧 GBP — British Pound</option>
-          <option value="EUR">🇪🇺 EUR — Euro</option>
-          <option value="AED">🇦🇪 AED — UAE Dirham</option>
-        </select>
-        <input type="number" id="budget" placeholder="Your budget (e.g. 50000)" />
-        <button id="search-btn" onclick="searchDestinations()">Find Destinations →</button>
-      </div>
-    </section>
+  <div class="search-box">
+    <select id="passport-country">
+      <optgroup label="🌍 Africa">
+        <option value="EG">🇪🇬 Egypt</option>
+        <option value="ET">🇪🇹 Ethiopia</option>
+        <option value="GH">🇬🇭 Ghana</option>
+        <option value="KE">🇰🇪 Kenya</option>
+        <option value="MA">🇲🇦 Morocco</option>
+        <option value="NG">🇳🇬 Nigeria</option>
+        <option value="ZA">🇿🇦 South Africa</option>
+        <option value="TZ">🇹🇿 Tanzania</option>
+        <option value="UG">🇺🇬 Uganda</option>
+        <option value="ZM">🇿🇲 Zambia</option>
+        <option value="ZW">🇿🇼 Zimbabwe</option>
+      </optgroup>
+      <optgroup label="🌏 Asia">
+        <option value="BD">🇧🇩 Bangladesh</option>
+        <option value="CN">🇨🇳 China</option>
+        <option value="IN" selected>🇮🇳 India</option>
+        <option value="ID">🇮🇩 Indonesia</option>
+        <option value="JP">🇯🇵 Japan</option>
+        <option value="MY">🇲🇾 Malaysia</option>
+        <option value="NP">🇳🇵 Nepal</option>
+        <option value="PK">🇵🇰 Pakistan</option>
+        <option value="PH">🇵🇭 Philippines</option>
+        <option value="KR">🇰🇷 South Korea</option>
+        <option value="LK">🇱🇰 Sri Lanka</option>
+        <option value="TH">🇹🇭 Thailand</option>
+        <option value="VN">🇻🇳 Vietnam</option>
+      </optgroup>
+      <optgroup label="🌍 Europe">
+        <option value="FR">🇫🇷 France</option>
+        <option value="DE">🇩🇪 Germany</option>
+        <option value="IT">🇮🇹 Italy</option>
+        <option value="NL">🇳🇱 Netherlands</option>
+        <option value="RU">🇷🇺 Russia</option>
+        <option value="ES">🇪🇸 Spain</option>
+        <option value="TR">🇹🇷 Turkey</option>
+        <option value="GB">🇬🇧 United Kingdom</option>
+      </optgroup>
+      <optgroup label="🌎 Middle East">
+        <option value="BH">🇧🇭 Bahrain</option>
+        <option value="IR">🇮🇷 Iran</option>
+        <option value="IQ">🇮🇶 Iraq</option>
+        <option value="JO">🇯🇴 Jordan</option>
+        <option value="KW">🇰🇼 Kuwait</option>
+        <option value="LB">🇱🇧 Lebanon</option>
+        <option value="OM">🇴🇲 Oman</option>
+        <option value="QA">🇶🇦 Qatar</option>
+        <option value="SA">🇸🇦 Saudi Arabia</option>
+        <option value="AE">🇦🇪 UAE</option>
+      </optgroup>
+      <optgroup label="🌎 Americas">
+        <option value="AR">🇦🇷 Argentina</option>
+        <option value="BR">🇧🇷 Brazil</option>
+        <option value="CA">🇨🇦 Canada</option>
+        <option value="CL">🇨🇱 Chile</option>
+        <option value="CO">🇨🇴 Colombia</option>
+        <option value="MX">🇲🇽 Mexico</option>
+        <option value="PE">🇵🇪 Peru</option>
+        <option value="US">🇺🇸 United States</option>
+      </optgroup>
+      <optgroup label="🌏 Oceania">
+        <option value="AU">🇦🇺 Australia</option>
+        <option value="NZ">🇳🇿 New Zealand</option>
+      </optgroup>
+    </select>
+    <select id="home-currency">
+      <option value="INR">🇮🇳 INR — Indian Rupee</option>
+      <option value="USD">🇺🇸 USD — US Dollar</option>
+      <option value="GBP">🇬🇧 GBP — British Pound</option>
+      <option value="EUR">🇪🇺 EUR — Euro</option>
+      <option value="AED">🇦🇪 AED — UAE Dirham</option>
+      <option value="SAR">🇸🇦 SAR — Saudi Riyal</option>
+      <option value="BDT">🇧🇩 BDT — Bangladeshi Taka</option>
+      <option value="NGN">🇳🇬 NGN — Nigerian Naira</option>
+      <option value="PKR">🇵🇰 PKR — Pakistani Rupee</option>
+      <option value="BRL">🇧🇷 BRL — Brazilian Real</option>
+      <option value="MXN">🇲🇽 MXN — Mexican Peso</option>
+      <option value="ZAR">🇿🇦 ZAR — South African Rand</option>
+      <option value="TRY">🇹🇷 TRY — Turkish Lira</option>
+      <option value="CNY">🇨🇳 CNY — Chinese Yuan</option>
+      <option value="JPY">🇯🇵 JPY — Japanese Yen</option>
+      <option value="KRW">🇰🇷 KRW — South Korean Won</option>
+      <option value="CAD">🇨🇦 CAD — Canadian Dollar</option>
+      <option value="AUD">🇦🇺 AUD — Australian Dollar</option>
+    </select>
+    <input type="number" id="budget" placeholder="Your budget" />
+    <button id="search-btn" onclick="searchDestinations()">Find Destinations →</button>
+  </div>
+</section>
 
     <!-- DESTINATION SEARCH BAR -->
     <div class="dest-search-wrap">
