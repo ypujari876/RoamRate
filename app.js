@@ -607,5 +607,121 @@ function filterDestinations() {
     card.style.display = (name.includes(query) || cities.includes(query)) ? '' : 'none';
   });
 }
+function calculateBudget() {
+  const origin = document.getElementById('bp-origin').value;
+  const days = parseInt(document.getElementById('bp-days').value) || currentDays;
+  const style = document.getElementById('bp-style').value;
+  const people = parseInt(document.getElementById('bp-people').value) || 1;
+  const flightClass = document.getElementById('bp-flight-class').value;
+  const currency = Object.keys({ INR: '₹', USD: '$', GBP: '£', EUR: '€', AED: 'د.إ', SAR: 'SAR ', BDT: '৳', NGN: '₦', PKR: '₨', BRL: 'R$', MXN: 'MX$', ZAR: 'R', TRY: '₺', CNY: '¥', JPY: '¥', KRW: '₩', CAD: 'CA$', AUD: 'A$' }).find(k => ({ INR: '₹', USD: '$', GBP: '£', EUR: '€', AED: 'د.إ', SAR: 'SAR ', BDT: '৳', NGN: '₦', PKR: '₨', BRL: 'R$', MXN: 'MX$', ZAR: 'R', TRY: '₺', CNY: '¥', JPY: '¥', KRW: '₩', CAD: 'CA$', AUD: 'A$' }[k] === currentSymbol)) || 'INR';
+  const rate = liveRates[currency] || 1;
+
+  const styleMultiplier = { budget: 0.7, mid: 1.0, luxury: 2.2 };
+  const multiplier = styleMultiplier[style];
+  const classMultiplierMap = { economy: 1, premium: 1.8, business: 3.5 };
+  const fClassMult = classMultiplierMap[flightClass];
+
+  const dailyUSD = currentDest.dailyCostUSD * multiplier;
+  const flightData = flightCosts[currentDest.name]?.[origin];
+  const flightMidUSD = flightData ? ((flightData[0] + flightData[1]) / 2) * fClassMult : 0;
+  const flightTotalUSD = flightMidUSD * people;
+  const accomUSD = dailyUSD * 0.40 * days * people;
+  const foodUSD = dailyUSD * 0.30 * days * people;
+  const transportUSD = dailyUSD * 0.15 * days * people;
+  const activitiesUSD = dailyUSD * 0.15 * days * people;
+  const totalUSD = flightTotalUSD + accomUSD + foodUSD + transportUSD + activitiesUSD;
+  const visa = visaDatabase[currentDest.name]?.[passportTiers[document.getElementById('passport-country')?.value || 'IN'] || 'tier3'];
+  const visaCost = visa?.cost || 'Check visa tab';
+
+  const fmt = usd => `${currentSymbol}${Math.round(usd * rate).toLocaleString()}`;
+  const styleLabels = { budget: 'Budget traveller', mid: 'Mid-range comfort', luxury: 'Luxury' };
+
+  document.getElementById('budget-result').classList.remove('hidden');
+  document.getElementById('budget-result').innerHTML = `
+    <div class="bp-header">
+      <span class="bp-dest">${currentDest.flag} ${currentDest.name}</span>
+      <span class="bp-style-tag">${styleLabels[style]}</span>
+    </div>
+    <div class="bp-total">${fmt(totalUSD)}</div>
+    <div class="bp-total-label">${people} person${people > 1 ? 's' : ''} · ${days} days · ${flightClass}</div>
+    <div class="bp-rows">
+      ${flightData ? `<div class="bp-row"><span>✈️ Flights (${people} pax)</span><span>${fmt(flightTotalUSD)}</span></div>` : ''}
+      <div class="bp-row"><span>🏨 Accommodation</span><span>${fmt(accomUSD)}</span></div>
+      <div class="bp-row"><span>🍜 Food & drink</span><span>${fmt(foodUSD)}</span></div>
+      <div class="bp-row"><span>🚌 Local transport</span><span>${fmt(transportUSD)}</span></div>
+      <div class="bp-row"><span>🎟 Activities & tours</span><span>${fmt(activitiesUSD)}</span></div>
+      <div class="bp-row"><span>🛂 Visa cost</span><span>${visaCost}</span></div>
+      <div class="bp-row bp-total-row"><span>Total estimate</span><span>${fmt(totalUSD)}</span></div>
+    </div>
+    <p class="bp-note">💡 Budget style reduces daily costs by 30%. Luxury increases by 120%. Actual costs vary by season and booking timing.</p>
+  `;
+}
+
+function populateCompareDropdown() {
+  const sel = document.getElementById('compare-dest');
+  sel.innerHTML = '<option value="">Select a destination to compare...</option>';
+  destinations.forEach(d => {
+    if (d.name !== currentDest?.name) {
+      const opt = document.createElement('option');
+      opt.value = d.name;
+      opt.textContent = `${d.flag} ${d.name}`;
+      sel.appendChild(opt);
+    }
+  });
+}
+
+function runComparison() {
+  const compareName = document.getElementById('compare-dest').value;
+  if (!compareName) { alert('Please select a destination to compare!'); return; }
+  const compareDest = destinations.find(d => d.name === compareName);
+  if (!compareDest || !currentDest) return;
+
+  const currency = Object.keys({ INR: '₹', USD: '$', GBP: '£', EUR: '€', AED: 'د.إ', SAR: 'SAR ', BDT: '৳', NGN: '₦', PKR: '₨', BRL: 'R$', MXN: 'MX$', ZAR: 'R', TRY: '₺', CNY: '¥', JPY: '¥', KRW: '₩', CAD: 'CA$', AUD: 'A$' }).find(k => ({ INR: '₹', USD: '$', GBP: '£', EUR: '€', AED: 'د.إ', SAR: 'SAR ', BDT: '৳', NGN: '₦', PKR: '₨', BRL: 'R$', MXN: 'MX$', ZAR: 'R', TRY: '₺', CNY: '¥', JPY: '¥', KRW: '₩', CAD: 'CA$', AUD: 'A$' }[k] === currentSymbol)) || 'INR';
+  const rate = liveRates[currency] || 1;
+  const budgetUSD = (parseFloat(document.getElementById('budget').value) || 0) / rate;
+  const daysA = currentDays;
+  const daysB = Math.floor(budgetUSD / compareDest.dailyCostUSD);
+  const fmt = usd => `${currentSymbol}${Math.round(usd * rate).toLocaleString()}`;
+
+  const passportCode = document.getElementById('passport-country')?.value || 'IN';
+  const tier = passportTiers[passportCode] || 'tier3';
+  const visaA = visaDatabase[currentDest.name]?.[tier];
+  const visaB = visaDatabase[compareDest.name]?.[tier];
+
+  const experienceScores = { 'Japan': 10, 'Italy': 10, 'France': 10, 'Peru': 9.5, 'Morocco': 9.5, 'Turkey': 9.5, 'Jordan': 9, 'Colombia': 9, 'Argentina': 9, 'South Africa': 9, 'Thailand': 9, 'Vietnam': 8.5, 'Indonesia': 8.5, 'Portugal': 8.5, 'Georgia': 8.5, 'Kenya': 8.5, 'Tanzania': 8.5, 'Egypt': 8, 'Malaysia': 8, 'Dubai': 7.5, 'Sri Lanka': 8, 'Nepal': 8, 'Mexico': 8.5, 'Lebanon': 7.5, 'Qatar': 7, 'Bahrain': 6.5, 'Zambia': 7.5, 'Zimbabwe': 7.5 };
+  const scoreA = experienceScores[currentDest.name] || 7;
+  const scoreB = experienceScores[compareDest.name] || 7;
+
+  const rows = [
+    { label: 'Daily cost', a: fmt(currentDest.dailyCostUSD), b: fmt(compareDest.dailyCostUSD), winA: currentDest.dailyCostUSD <= compareDest.dailyCostUSD },
+    { label: 'Days on budget', a: `${daysA} days`, b: `${daysB} days`, winA: daysA >= daysB },
+    { label: 'Experience score', a: `${scoreA}/10`, b: `${scoreB}/10`, winA: scoreA >= scoreB },
+    { label: 'Travel climate', a: currentDest.climate, b: compareDest.climate, winA: currentDest.climate === '✅ Stable' },
+    { label: 'Currency', a: currentDest.currency, b: compareDest.currency, winA: null },
+    { label: 'Visa (your passport)', a: visaA?.statusLabel || '—', b: visaB?.statusLabel || '—', winA: visaA?.status === 'visa-free' && visaB?.status !== 'visa-free' },
+  ];
+
+  const winsA = rows.filter(r => r.winA === true).length;
+  const winsB = rows.filter(r => r.winA === false).length;
+  const verdict = winsA > winsB ? currentDest : winsB > winsA ? compareDest : null;
+
+  document.getElementById('compare-result').innerHTML = `
+    <div class="cmp-header">
+      <div class="cmp-dest">${currentDest.flag}<br><strong>${currentDest.name}</strong></div>
+      <div class="cmp-vs">VS</div>
+      <div class="cmp-dest">${compareDest.flag}<br><strong>${compareDest.name}</strong></div>
+    </div>
+    <div class="cmp-rows">
+      ${rows.map(r => `
+        <div class="cmp-row">
+          <span class="cmp-val ${r.winA === true ? 'cmp-win' : r.winA === false ? '' : ''}">${r.a}</span>
+          <span class="cmp-label">${r.label}</span>
+          <span class="cmp-val ${r.winA === false ? 'cmp-win' : ''}">${r.b}</span>
+        </div>
+      `).join('')}
+    </div>
+    ${verdict ? `<div class="cmp-verdict">🏆 ${verdict.flag} <strong>${verdict.name}</strong> wins on more factors for your budget</div>` : `<div class="cmp-verdict">🤝 It\'s a close call — both destinations offer great value</div>`}
+  `;
+}
 
 loadRates();
