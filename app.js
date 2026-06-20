@@ -142,14 +142,57 @@ async function searchDestinations() {
   const selectedCurrency = document.getElementById('home-currency').value;
   if (!budgetInput) { alert('Please enter your budget!'); return; }
   if (!liveRates[selectedCurrency]) { alert('Rates still loading, try again!'); return; }
+
   const symbols = { INR: '₹', USD: '$', GBP: '£', EUR: '€', AED: 'د.إ', SAR: 'SAR ', BDT: '৳', NGN: '₦', PKR: '₨', BRL: 'R$', MXN: 'MX$', ZAR: 'R', TRY: '₺', CNY: '¥', JPY: '¥', KRW: '₩', CAD: 'CA$', AUD: 'A$' };
   currentSymbol = symbols[selectedCurrency] || selectedCurrency + ' ';
   const budgetUSD = parseFloat(budgetInput) / liveRates[selectedCurrency];
+
+  // Experience quality scores — how good is this destination as a trip (not how cheap)
+  const experienceScores = {
+    'Japan': 10, 'Italy': 10, 'France': 10, 'Peru': 9.5, 'Morocco': 9.5,
+    'Turkey': 9.5, 'Jordan': 9, 'Colombia': 9, 'Argentina': 9, 'South Africa': 9,
+    'Thailand': 9, 'Vietnam': 8.5, 'Indonesia': 8.5, 'Portugal': 8.5, 'Georgia': 8.5,
+    'Kenya': 8.5, 'Tanzania': 8.5, 'Egypt': 8, 'Malaysia': 8, 'Dubai': 7.5,
+    'Sri Lanka': 8, 'Nepal': 8, 'Mexico': 8.5, 'Lebanon': 7.5, 'Qatar': 7,
+    'Bahrain': 6.5, 'Zambia': 7.5, 'Zimbabwe': 7.5,
+  };
+
+  // Minimum viable days — below this the trip doesn't make sense
+  const minViableDays = {
+    'Japan': 7, 'Italy': 6, 'France': 5, 'Peru': 8, 'Morocco': 5,
+    'Turkey': 5, 'Jordan': 4, 'Colombia': 6, 'Argentina': 8, 'South Africa': 7,
+    'Thailand': 5, 'Vietnam': 6, 'Indonesia': 5, 'Portugal': 4, 'Georgia': 4,
+    'Kenya': 5, 'Tanzania': 5, 'Egypt': 5, 'Malaysia': 4, 'Dubai': 3,
+    'Sri Lanka': 5, 'Nepal': 5, 'Mexico': 5, 'Lebanon': 3, 'Qatar': 3,
+    'Bahrain': 3, 'Zambia': 4, 'Zimbabwe': 4,
+  };
+
   const results = destinations.map(dest => {
     const days = Math.floor(budgetUSD / dest.dailyCostUSD);
     const dailyCostLocal = (dest.dailyCostUSD * liveRates[selectedCurrency]).toFixed(0);
-    return { ...dest, days, dailyCostLocal };
-  }).filter(d => d.days >= 1).sort((a, b) => b.days - a.days);
+    const minDays = minViableDays[dest.name] || 4;
+
+    // Skip destinations where budget doesn't cover a viable trip
+    if (days < minDays) return null;
+
+    const expScore = experienceScores[dest.name] || 7;
+
+    // Days score — sweet spot is 7-21 days, diminishing returns after that
+    const idealDays = Math.min(days, 21);
+    const daysScore = Math.min(idealDays / 14, 1) * 10;
+
+    // Value score — how many days relative to a "good" trip length
+    const valueScore = Math.min(days / (minDays * 2), 1) * 10;
+
+    // Small random shuffle factor so identical scores vary each search
+    const shuffleFactor = (Math.random() * 2) - 1;
+
+    // Weighted total score
+    const totalScore = (expScore * 0.35) + (daysScore * 0.30) + (valueScore * 0.20) + (shuffleFactor * 0.15);
+
+    return { ...dest, days, dailyCostLocal, totalScore };
+  }).filter(Boolean).sort((a, b) => b.totalScore - a.totalScore);
+
   renderCards(results, selectedCurrency);
   for (const dest of results.slice(0, 3)) { fetchNews(dest.name, dest.newsQuery); }
 }
