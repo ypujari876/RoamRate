@@ -1,24 +1,38 @@
 {
   "name": "RoamRate",
   "short_name": "RoamRate",
-  "description": "Find where your money goes furthest",
-  "start_url": "/",
+  "description": "Find where your money goes furthest — right now",
+  "start_url": "/index.html",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0f1117",
   "theme_color": "#4f6ef7",
   "orientation": "portrait-primary",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
